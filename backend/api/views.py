@@ -184,7 +184,7 @@ class UserViewSet(
         page = self.paginate_queryset(authors)
 
         serializer = UserWithRecipesSerializer(
-            authors,
+            page,
             many=True,
             context={'request': request}
         )
