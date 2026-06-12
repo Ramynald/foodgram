@@ -11,8 +11,9 @@ from .serializers import (TagSerializer,
                           SetPasswordSerializer,
                           SetAvatarSerializer,
                           AvatarResponseSerializer,
-                          UserWithRecipesSerializer)
-from recipes.models import Tag, Ingredient
+                          UserWithRecipesSerializer,
+                          RecipeListSerializer)
+from recipes.models import Tag, Ingredient, Recipe
 from users.models import User, Subscription 
 
 
@@ -192,3 +193,8 @@ class UserViewSet(
         return self.get_paginated_response(
             serializer.data
         )
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeListSerializer

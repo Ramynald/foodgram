@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
-from .views import TagViewSet, IngredientViewSet, UserViewSet
+from .views import TagViewSet, IngredientViewSet, UserViewSet, RecipeViewSet
 
 
 router = DefaultRouter()
@@ -11,5 +11,6 @@ router.register(
     basename='ingredients',
 )
 router.register('users', UserViewSet, basename='users')
+router.register('recipes', RecipeViewSet, basename='recipes')
 
 urlpatterns = router.urls
