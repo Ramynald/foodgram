@@ -12,7 +12,8 @@ from .serializers import (TagSerializer,
                           SetAvatarSerializer,
                           AvatarResponseSerializer,
                           UserWithRecipesSerializer,
-                          RecipeListSerializer)
+                          RecipeListSerializer,
+                          RecipeCreateUpdateSerializer)
 from recipes.models import Tag, Ingredient, Recipe
 from users.models import User, Subscription 
 
@@ -197,4 +198,9 @@ class UserViewSet(
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeListSerializer
+    serializer_class = RecipeCreateUpdateSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return RecipeListSerializer
+        return super().get_serializer_class()
