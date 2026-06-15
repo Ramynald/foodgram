@@ -13,8 +13,14 @@ from .serializers import (TagSerializer,
                           AvatarResponseSerializer,
                           UserWithRecipesSerializer,
                           RecipeListSerializer,
+                          RecipeMinifiedSerializer,
                           RecipeCreateUpdateSerializer)
-from recipes.models import Tag, Ingredient, Recipe
+from recipes.models import (Tag,
+                            Ingredient,
+                            Recipe,
+                            RecipeIngredient,
+                            Favorite,
+                            ShoppingCart)
 from users.models import User, Subscription 
 
 
@@ -204,3 +210,113 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return RecipeListSerializer
         return super().get_serializer_class()
+
+    @action(
+        detail=True,
+        methods=['post']
+    )
+    def favorite(self, request, pk=None):
+        recipe = get_object_or_404(
+            Recipe,
+            pk=pk
+        )
+
+        if Favorite.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).exists():
+            return Response(
+                {'errors': 'Рецепт уже в избранном'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        Favorite.objects.create(
+            user=request.user,
+            recipe=recipe
+        )
+
+        serializer = RecipeMinifiedSerializer(recipe)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @favorite.mapping.delete
+    def unfavorite(self, request, pk=None):
+        recipe = get_object_or_404(
+            Recipe,
+            pk=pk
+        )
+
+        favorite = Favorite.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).first()
+
+        if favorite is None:
+            return Response(
+                {'errors': 'Рецепт не найден в избранном'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        favorite.delete()
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+    @action(
+        detail=True,
+        methods=['post']
+    )
+    def shopping_cart(self, request, pk=None):
+        recipe = get_object_or_404(
+            Recipe,
+            pk=pk
+        )
+
+        if ShoppingCart.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).exists():
+            return Response(
+                {'errors': 'Рецепт уже в списке покупок'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        ShoppingCart.objects.create(
+            user=request.user,
+            recipe=recipe
+        )
+
+        serializer = RecipeMinifiedSerializer(recipe)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @shopping_cart.mapping.delete
+    def remove_from_shopping_cart(self, request, pk=None):
+        recipe = get_object_or_404(
+            Recipe,
+            pk=pk
+        )
+
+        shopping_cart_item = ShoppingCart.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).first()
+
+        if shopping_cart_item is None:
+            return Response(
+                {'errors': 'Рецепт не найден в списке покупок'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        shopping_cart_item.delete()
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )
