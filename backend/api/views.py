@@ -22,7 +22,9 @@ from recipes.models import (Tag,
                             RecipeIngredient,
                             Favorite,
                             ShoppingCart)
-from users.models import User, Subscription 
+from users.models import User, Subscription
+from .permissions import IsAuthorOrReadOnly
+from .filters import RecipeFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -217,11 +219,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeListSerializer
         return super().get_serializer_class()
 
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [AllowAny()]
-        return [IsAuthenticated()]
-
+    permission_classes = [IsAuthorOrReadOnly]
+    filterset_class = RecipeFilter
+    
     @action(
         detail=True,
         methods=['post']
