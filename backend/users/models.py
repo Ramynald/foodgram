@@ -4,11 +4,20 @@ from django.db.models import F, Q
 
 
 class User(AbstractUser):
+    email = models.EmailField(unique=True)
     avatar = models.ImageField(
         upload_to='users/',
         blank=True,
         null=True,
     )
+
+    USERNAME_FIELD = 'email'
+
+    REQUIRED_FIELDS = [
+        'username',
+        'first_name',
+        'last_name',
+    ]
 
 
 class Subscription(models.Model):
