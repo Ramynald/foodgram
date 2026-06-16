@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from django.shortcuts import get_object_or_404
 
@@ -55,6 +56,11 @@ class UserViewSet(
         if self.action == 'create':
             return UserCreateSerializer
         return UserSerializer
+    
+    def get_permissions(self):
+        if self.action in ['create', 'list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     
     @action(detail=False, methods=['get'])
     def me(self, request):
@@ -210,6 +216,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return RecipeListSerializer
         return super().get_serializer_class()
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     @action(
         detail=True,
