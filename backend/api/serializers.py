@@ -102,15 +102,33 @@ class RecipeListSerializer(serializers.ModelSerializer):
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
+    first_name = serializers.CharField(max_length=150, required=True)
+    last_name = serializers.CharField(max_length=150, required=True)
+
     class Meta:
         model = User
         fields = (
+            'id',
             'email',
             'username',
             'first_name',
             'last_name',
             'password',
         )
+
+    def validate_first_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError(
+                'Это поле обязательно.'
+            )
+        return value
+
+    def validate_last_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError(
+                'Это поле обязательно.'
+            )
+        return value
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
@@ -191,6 +209,8 @@ class RecipeIngredientCreateSerializer(serializers.ModelSerializer):
         source='ingredient',
     )
 
+    amount = serializers.IntegerField(min_value=1)
+
     class Meta:
         model = RecipeIngredient
         fields = (
@@ -207,7 +227,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         many=True,
     )
-    image = Base64ImageField()
+    image = Base64ImageField(required=True)
+    cooking_time = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = Recipe
@@ -251,6 +272,13 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
         return value
     
+    def validate_image(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'Изображение обязательно.'
+            )
+        return value
+    
     def create_ingredients(self, recipe, ingredients_data):
         for ingredient_data in ingredients_data:
             RecipeIngredient.objects.create(
@@ -260,8 +288,18 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             )
 
     def create(self, validated_data):
-        ingredients_data = validated_data.pop('ingredients')
-        tags_data = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients', None)
+        tags_data = validated_data.pop('tags', None)
+
+        if ingredients_data is None:
+            raise serializers.ValidationError(
+                {'ingredients': 'Это поле обязательно.'}
+            )
+
+        if tags_data is None:
+            raise serializers.ValidationError(
+                {'tags': 'Это поле обязательно.'}
+            )
 
         recipe = Recipe.objects.create(
             author=self.context['request'].user,
@@ -278,8 +316,18 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        ingredients_data = validated_data.pop('ingredients')
-        tags_data = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients', None)
+        tags_data = validated_data.pop('tags', None)
+
+        if ingredients_data is None:
+            raise serializers.ValidationError({
+                'ingredients': 'Это поле обязательно.'
+            })
+
+        if tags_data is None:
+            raise serializers.ValidationError({
+                'tags': 'Это поле обязательно.'
+            })
 
         instance.tags.set(tags_data)
 

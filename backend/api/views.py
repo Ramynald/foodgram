@@ -4,6 +4,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from django.shortcuts import get_object_or_404
+from django.db.models import Sum
+from django.http import HttpResponse
+from django.urls import reverse
 
 from .serializers import (TagSerializer,
                           IngredientSerializer,
@@ -30,10 +33,12 @@ from .filters import RecipeFilter
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
+    pagination_class = None
 
     def get_queryset(self):
         name = self.request.query_params.get('name')
@@ -211,7 +216,7 @@ class UserViewSet(
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.all().order_by('-id')
     serializer_class = RecipeCreateUpdateSerializer
 
     def get_serializer_class(self):
@@ -331,3 +336,64 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated]
+    )
+    def download_shopping_cart(self, request):
+        shopping_cart_items = ShoppingCart.objects.filter(
+            user=request.user
+        ).select_related('recipe')
+
+        if not shopping_cart_items.exists():
+            return Response(
+                {'errors': 'Список покупок пуст'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        recipe_ids = shopping_cart_items.values_list(
+            'recipe__id',
+            flat=True
+        )
+
+        ingredients = RecipeIngredient.objects.filter(
+            recipe__id__in=recipe_ids
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(total_amount=Sum('amount'))
+
+        lines = [
+            f"{item['ingredient__name']} - {item['total_amount']} {item['ingredient__measurement_unit']}"
+            for item in ingredients
+        ]
+
+        response_content = "\n".join(lines)
+        response = HttpResponse(response_content, content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="shopping_cart.txt"'
+
+        return response
+    
+    @action(
+        detail=True,
+        methods=['get'],
+        url_path='get-link'
+    )
+    def get_link(self, request, pk=None):
+        recipe = get_object_or_404(
+            Recipe,
+            pk=pk
+        )
+
+        short_link = request.build_absolute_uri(
+            reverse(
+                'recipes-detail',
+                args=[recipe.id]
+            )
+       )
+
+        return Response(
+            {'short-link': short_link}
+       )

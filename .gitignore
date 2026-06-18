@@ -138,5 +138,13 @@ dmypy.json
 .idea
 .vscode
 
+venv/
+.env
+
+db.sqlite3
+
+__pycache__/
+*.pyc
+
 static/
 media/

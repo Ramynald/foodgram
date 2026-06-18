@@ -24,6 +24,7 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
         related_name='recipes',
     )
+
     name = models.CharField(max_length=128)
     text = models.TextField()
     image = models.ImageField(upload_to='recipes/')
