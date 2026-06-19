@@ -1,6 +1,6 @@
 import django_filters
-
-from recipes.models import Recipe
+from django_filters import ModelMultipleChoiceFilter
+from recipes.models import Recipe, Tag
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -8,8 +8,10 @@ class RecipeFilter(django_filters.FilterSet):
         field_name='author__id'
     )
 
-    tags = django_filters.AllValuesMultipleFilter(
-        field_name='tags__slug'
+    tags = ModelMultipleChoiceFilter(
+        field_name='tags__slug',
+        to_field_name='slug',
+        queryset=Tag.objects.all(),
     )
 
     is_favorited = django_filters.NumberFilter(
