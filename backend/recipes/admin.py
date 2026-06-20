@@ -1,17 +1,15 @@
+"""Admin configuration for recipes."""
+
 from django.contrib import admin
 
-from .models import (
-    Favorite,
-    Ingredient,
-    Recipe,
-    RecipeIngredient,
-    ShoppingCart,
-    Tag,
-)
+from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                     ShoppingCart, Tag)
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
+    """Admin configuration for ingredients."""
+
     list_display = (
         'name',
         'measurement_unit',
@@ -23,6 +21,8 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
+    """Admin configuration for tags."""
+
     list_display = (
         'name',
         'slug',
@@ -35,6 +35,8 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
+    """Admin configuration for recipes."""
+
     list_display = (
         'name',
         'author',
@@ -49,11 +51,14 @@ class RecipeAdmin(admin.ModelAdmin):
     )
 
     def favorites_count(self, obj):
+        """Return number of favorites."""
         return obj.favorited_by.count()
 
 
 @admin.register(RecipeIngredient)
 class RecipeIngredientAdmin(admin.ModelAdmin):
+    """Admin configuration for recipe ingredients."""
+
     list_display = (
         'recipe',
         'ingredient',
@@ -67,6 +72,8 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
+    """Admin configuration for favorites."""
+
     list_display = (
         'user',
         'recipe',
@@ -79,6 +86,8 @@ class FavoriteAdmin(admin.ModelAdmin):
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
+    """Admin configuration for shopping cart."""
+
     list_display = (
         'user',
         'recipe',

@@ -1,13 +1,16 @@
+"""Command for loading ingredients from JSON."""
+
 import json
 
 from django.core.management.base import BaseCommand
-
 from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
+    """Load ingredients into the database."""
 
     def handle(self, *args, **kwargs):
+        """Execute the command."""
         with open('/app/data/ingredients.json', encoding='utf-8') as f:
             ingredients_data = json.load(f)
 

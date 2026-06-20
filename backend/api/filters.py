@@ -1,9 +1,13 @@
+"""Filters for recipes API."""
+
 import django_filters
 from django_filters import ModelMultipleChoiceFilter
 from recipes.models import Recipe, Tag
 
 
 class RecipeFilter(django_filters.FilterSet):
+    """Filter recipes."""
+
     author = django_filters.NumberFilter(
         field_name='author__id'
     )
@@ -23,6 +27,8 @@ class RecipeFilter(django_filters.FilterSet):
     )
 
     class Meta:
+        """Filter configuration."""
+
         model = Recipe
         fields = (
             'author',
@@ -32,6 +38,7 @@ class RecipeFilter(django_filters.FilterSet):
         )
 
     def filter_is_favorited(self, queryset, name, value):
+        """Filter recipes by favorites."""
         user = self.request.user
 
         if not user.is_authenticated:
@@ -50,6 +57,7 @@ class RecipeFilter(django_filters.FilterSet):
         name,
         value
     ):
+        """Filter recipes by shopping cart."""
         user = self.request.user
 
         if not user.is_authenticated:
@@ -61,4 +69,3 @@ class RecipeFilter(django_filters.FilterSet):
             )
 
         return queryset
-    

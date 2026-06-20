@@ -1,24 +1,34 @@
+"""Models for recipes application."""
+
 from django.db import models
 from django.db.models import Q
 
 
 class Tag(models.Model):
+    """Recipe tag model."""
+
     name = models.CharField(max_length=32, unique=True)
     slug = models.SlugField(max_length=32, unique=True)
 
     def __str__(self):
+        """Return tag name."""
         return self.name
 
 
 class Ingredient(models.Model):
+    """Ingredient model."""
+
     name = models.CharField(max_length=64, unique=True)
     measurement_unit = models.CharField(max_length=16)
 
     def __str__(self):
+        """Return ingredient name."""
         return self.name
 
 
 class Recipe(models.Model):
+    """Recipe model."""
+
     author = models.ForeignKey(
         'users.User',
         on_delete=models.CASCADE,
@@ -42,10 +52,13 @@ class Recipe(models.Model):
     )
 
     def __str__(self):
+        """Return recipe name."""
         return self.name
 
 
 class RecipeIngredient(models.Model):
+    """Recipe ingredient model."""
+
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -59,6 +72,8 @@ class RecipeIngredient(models.Model):
     amount = models.PositiveIntegerField()
 
     class Meta:
+        """Model configuration."""
+
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
@@ -71,10 +86,13 @@ class RecipeIngredient(models.Model):
         ]
 
     def __str__(self):
+        """Return ingredient amount representation."""
         return f'{self.ingredient} ({self.amount})'
 
 
 class Favorite(models.Model):
+    """Favorite recipe model."""
+
     user = models.ForeignKey(
         'users.User',
         on_delete=models.CASCADE,
@@ -87,6 +105,8 @@ class Favorite(models.Model):
     )
 
     class Meta:
+        """Model configuration."""
+
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
@@ -95,10 +115,13 @@ class Favorite(models.Model):
         ]
 
     def __str__(self):
+        """Return favorite representation."""
         return f'{self.user} - {self.recipe}'
 
 
 class ShoppingCart(models.Model):
+    """Shopping cart model."""
+
     user = models.ForeignKey(
         'users.User',
         on_delete=models.CASCADE,
@@ -111,6 +134,8 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
+        """Model configuration."""
+
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
@@ -119,5 +144,5 @@ class ShoppingCart(models.Model):
         ]
 
     def __str__(self):
+        """Return shopping cart representation."""
         return f'{self.user} - {self.recipe}'
-    

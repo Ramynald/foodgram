@@ -1,9 +1,13 @@
+"""Models for users application."""
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import F, Q
 
 
 class User(AbstractUser):
+    """Custom user model."""
+
     email = models.EmailField(unique=True)
     avatar = models.ImageField(
         upload_to='users/',
@@ -21,6 +25,8 @@ class User(AbstractUser):
 
 
 class Subscription(models.Model):
+    """User subscription model."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -33,6 +39,8 @@ class Subscription(models.Model):
     )
 
     class Meta:
+        """Model configuration."""
+
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],
@@ -45,4 +53,5 @@ class Subscription(models.Model):
         ]
 
     def __str__(self):
+        """Return subscription representation."""
         return f'{self.user} подписан на {self.author}'

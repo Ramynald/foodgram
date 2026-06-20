@@ -1,46 +1,43 @@
-from rest_framework import viewsets, status, mixins
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+"""API views."""
 
-from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from users.models import Subscription, User
 
-from .serializers import (TagSerializer,
-                          IngredientSerializer,
-                          UserSerializer,
-                          UserCreateSerializer,
-                          SetPasswordSerializer,
-                          SetAvatarSerializer,
-                          AvatarResponseSerializer,
-                          UserWithRecipesSerializer,
-                          RecipeListSerializer,
-                          RecipeMinifiedSerializer,
-                          RecipeCreateUpdateSerializer)
-from recipes.models import (Tag,
-                            Ingredient,
-                            Recipe,
-                            RecipeIngredient,
-                            Favorite,
-                            ShoppingCart)
-from users.models import User, Subscription
-from .permissions import IsAuthorOrReadOnly
 from .filters import RecipeFilter
+from .permissions import IsAuthorOrReadOnly
+from .serializers import (AvatarResponseSerializer, IngredientSerializer,
+                          RecipeCreateUpdateSerializer, RecipeListSerializer,
+                          RecipeMinifiedSerializer, SetAvatarSerializer,
+                          SetPasswordSerializer, TagSerializer,
+                          UserCreateSerializer, UserSerializer,
+                          UserWithRecipesSerializer)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for tags."""
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for ingredients."""
+
     serializer_class = IngredientSerializer
     pagination_class = None
 
     def get_queryset(self):
+        """Return filtered ingredients queryset."""
         name = self.request.query_params.get('name')
 
         if name:
@@ -55,27 +52,35 @@ class UserViewSet(
         mixins.ListModelMixin,
         mixins.RetrieveModelMixin,
         mixins.CreateModelMixin,
-        viewsets.GenericViewSet
-    ):
+        viewsets.GenericViewSet):
+    """ViewSet for users."""
+
     queryset = User.objects.all()
 
     def get_serializer_class(self):
+        """Return serializer class for current action."""
         if self.action == 'create':
             return UserCreateSerializer
+
         return UserSerializer
-    
+
     def get_permissions(self):
+        """Return permissions for current action."""
         if self.action in ['create', 'list', 'retrieve']:
             return [AllowAny()]
+
         return [IsAuthenticated()]
-    
+
     @action(detail=False, methods=['get'])
     def me(self, request):
+        """Return current user data."""
         serializer = UserSerializer(request.user, context={'request': request})
+
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=['post'])
     def set_password(self, request):
+        """Change user password."""
         serializer = SetPasswordSerializer(
             data=request.data,
             context={'request': request}
@@ -97,13 +102,14 @@ class UserViewSet(
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
-    
+
     @action(
         detail=False,
         methods=['put'],
         url_path='me/avatar'
     )
     def avatar(self, request):
+        """Upload user avatar."""
         serializer = SetAvatarSerializer(
             data=request.data,
             context={'request': request}
@@ -116,9 +122,10 @@ class UserViewSet(
         return Response(
             AvatarResponseSerializer(request.user).data
         )
-    
+
     @avatar.mapping.delete
     def delete_avatar(self, request):
+        """Delete user avatar."""
         request.user.avatar.delete(save=False)
         request.user.avatar = None
         request.user.save()
@@ -126,12 +133,13 @@ class UserViewSet(
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
-    
+
     @action(
         detail=True,
         methods=['post']
     )
     def subscribe(self, request, pk=None):
+        """Subscribe to an author."""
         author = get_object_or_404(
             User,
             pk=pk
@@ -151,7 +159,7 @@ class UserViewSet(
                 {'errors': 'Вы уже подписаны'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         Subscription.objects.create(
             user=request.user,
             author=author
@@ -166,9 +174,10 @@ class UserViewSet(
             serializer.data,
             status=status.HTTP_201_CREATED
         )
-    
+
     @subscribe.mapping.delete
     def unsubscribe(self, request, pk=None):
+        """Unsubscribe from an author."""
         author = get_object_or_404(
             User,
             pk=pk
@@ -190,12 +199,13 @@ class UserViewSet(
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
-    
+
     @action(
         detail=False,
         methods=['get']
     )
     def subscriptions(self, request):
+        """Return user subscriptions."""
         subscriptions = Subscription.objects.filter(
             user=request.user
         ).select_related('author')
@@ -216,22 +226,27 @@ class UserViewSet(
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """ViewSet for recipes."""
+
     queryset = Recipe.objects.all().order_by('-id')
     serializer_class = RecipeCreateUpdateSerializer
 
     def get_serializer_class(self):
+        """Return serializer class for current action."""
         if self.action in ['list', 'retrieve']:
             return RecipeListSerializer
+
         return super().get_serializer_class()
 
     permission_classes = [IsAuthorOrReadOnly]
     filterset_class = RecipeFilter
-    
+
     @action(
         detail=True,
         methods=['post']
     )
     def favorite(self, request, pk=None):
+        """Add recipe to favorites."""
         recipe = get_object_or_404(
             Recipe,
             pk=pk
@@ -260,6 +275,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @favorite.mapping.delete
     def unfavorite(self, request, pk=None):
+        """Remove recipe from favorites."""
         recipe = get_object_or_404(
             Recipe,
             pk=pk
@@ -287,6 +303,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=['post']
     )
     def shopping_cart(self, request, pk=None):
+        """Add recipe to shopping cart."""
         recipe = get_object_or_404(
             Recipe,
             pk=pk
@@ -315,6 +332,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @shopping_cart.mapping.delete
     def remove_from_shopping_cart(self, request, pk=None):
+        """Remove recipe from shopping cart."""
         recipe = get_object_or_404(
             Recipe,
             pk=pk
@@ -343,6 +361,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
+        """Download shopping cart as a text file."""
         shopping_cart_items = ShoppingCart.objects.filter(
             user=request.user
         ).select_related('recipe')
@@ -366,22 +385,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ).annotate(total_amount=Sum('amount'))
 
         lines = [
-            f"{item['ingredient__name']} - {item['total_amount']} {item['ingredient__measurement_unit']}"
+            (
+                f"{item['ingredient__name']} - "
+                f"{item['total_amount']} "
+                f"{item['ingredient__measurement_unit']}"
+            )
             for item in ingredients
         ]
 
         response_content = "\n".join(lines)
         response = HttpResponse(response_content, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="shopping_cart.txt"'
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_cart.txt"'
+        )
 
         return response
-    
+
     @action(
         detail=True,
         methods=['get'],
         url_path='get-link'
     )
     def get_link(self, request, pk=None):
+        """Return recipe link."""
         recipe = get_object_or_404(
             Recipe,
             pk=pk
@@ -392,8 +418,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'recipes-detail',
                 args=[recipe.id]
             )
-       )
+        )
 
         return Response(
             {'short-link': short_link}
-       )
+        )
