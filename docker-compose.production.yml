@@ -8,12 +8,14 @@ volumes:
 services:
   db:
     image: postgres:15
+    restart: always
     env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
 
   backend:
     image: gramulechka/foodgram_backend:latest
+    restart: always
     env_file: .env
     volumes:
       - static:/app/static/
@@ -29,6 +31,7 @@ services:
 
   gateway:
     image: gramulechka/foodgram_gateway:latest
+    restart: always
     volumes:
       - static:/usr/share/nginx/html/
       - media:/media/

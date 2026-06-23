@@ -8,22 +8,18 @@ from recipes.models import Recipe, Tag
 class RecipeFilter(django_filters.FilterSet):
     """Filter recipes."""
 
-    author = django_filters.NumberFilter(
-        field_name='author__id'
-    )
+    author = django_filters.NumberFilter(field_name="author__id")
 
     tags = ModelMultipleChoiceFilter(
-        field_name='tags__slug',
-        to_field_name='slug',
+        field_name="tags__slug",
+        to_field_name="slug",
         queryset=Tag.objects.all(),
     )
 
-    is_favorited = django_filters.NumberFilter(
-        method='filter_is_favorited'
-    )
+    is_favorited = django_filters.NumberFilter(method="filter_is_favorited")
 
     is_in_shopping_cart = django_filters.NumberFilter(
-        method='filter_is_in_shopping_cart'
+        method="filter_is_in_shopping_cart"
     )
 
     class Meta:
@@ -31,10 +27,10 @@ class RecipeFilter(django_filters.FilterSet):
 
         model = Recipe
         fields = (
-            'author',
-            'tags',
-            'is_favorited',
-            'is_in_shopping_cart',
+            "author",
+            "tags",
+            "is_favorited",
+            "is_in_shopping_cart",
         )
 
     def filter_is_favorited(self, queryset, name, value):
@@ -45,18 +41,11 @@ class RecipeFilter(django_filters.FilterSet):
             return queryset.none() if value else queryset
 
         if value:
-            return queryset.filter(
-                favorited_by__user=user
-            )
+            return queryset.filter(favorited_by__user=user)
 
         return queryset
 
-    def filter_is_in_shopping_cart(
-        self,
-        queryset,
-        name,
-        value
-    ):
+    def filter_is_in_shopping_cart(self, queryset, name, value):
         """Filter recipes by shopping cart."""
         user = self.request.user
 
@@ -64,8 +53,6 @@ class RecipeFilter(django_filters.FilterSet):
             return queryset.none() if value else queryset
 
         if value:
-            return queryset.filter(
-                in_shopping_carts__user=user
-            )
+            return queryset.filter(in_shopping_carts__user=user)
 
         return queryset

@@ -11,17 +11,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         """Execute the command."""
-        with open('/app/data/ingredients.json', encoding='utf-8') as f:
+        with open("/app/data/ingredients.json", encoding="utf-8") as f:
             ingredients_data = json.load(f)
 
         for ingredient in ingredients_data:
             Ingredient.objects.get_or_create(
-                name=ingredient['name'],
-                measurement_unit=ingredient['measurement_unit'],
+                name=ingredient["name"],
+                measurement_unit=ingredient["measurement_unit"],
             )
 
         self.stdout.write(
-            self.style.SUCCESS(
-                'Ingredients loaded successfully'
-            )
+            self.style.SUCCESS("Ingredients loaded successfully")
         )

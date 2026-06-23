@@ -10,17 +10,17 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=True)
     avatar = models.ImageField(
-        upload_to='users/',
+        upload_to="users/",
         blank=True,
         null=True,
     )
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
 
     REQUIRED_FIELDS = [
-        'username',
-        'first_name',
-        'last_name',
+        "username",
+        "first_name",
+        "last_name",
     ]
 
 
@@ -30,12 +30,12 @@ class Subscription(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='subscriptions',
+        related_name="subscriptions",
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='subscribers',
+        related_name="subscribers",
     )
 
     class Meta:
@@ -43,15 +43,15 @@ class Subscription(models.Model):
 
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'],
-                name='unique_subscription',
+                fields=["user", "author"],
+                name="unique_subscription",
             ),
             models.CheckConstraint(
-                condition=~Q(user=F('author')),
-                name='prevent_self_subscription',
+                condition=~Q(user=F("author")),
+                name="prevent_self_subscription",
             ),
         ]
 
     def __str__(self):
         """Return subscription representation."""
-        return f'{self.user} подписан на {self.author}'
+        return f"{self.user} подписан на {self.author}"

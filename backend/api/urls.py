@@ -5,13 +5,13 @@ from rest_framework.routers import DefaultRouter
 from .views import IngredientViewSet, RecipeViewSet, TagViewSet, UserViewSet
 
 router = DefaultRouter()
-router.register('tags', TagViewSet, basename='tags')
+router.register("tags", TagViewSet, basename="tags")
 router.register(
-    'ingredients',
+    "ingredients",
     IngredientViewSet,
-    basename='ingredients',
+    basename="ingredients",
 )
-router.register('users', UserViewSet, basename='users')
-router.register('recipes', RecipeViewSet, basename='recipes')
+router.register("users", UserViewSet, basename="users")
+router.register("recipes", RecipeViewSet, basename="recipes")
 
 urlpatterns = router.urls

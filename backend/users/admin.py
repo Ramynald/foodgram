@@ -10,12 +10,12 @@ class UserAdmin(admin.ModelAdmin):
     """Admin configuration for users."""
 
     list_display = (
-        'username',
-        'email',
+        "username",
+        "email",
     )
     search_fields = (
-        'username',
-        'email',
+        "username",
+        "email",
     )
 
 
@@ -24,6 +24,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
     """Admin configuration for subscriptions."""
 
     list_display = (
-        'user',
-        'author',
+        "user",
+        "author",
     )

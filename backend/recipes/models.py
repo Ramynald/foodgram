@@ -30,25 +30,25 @@ class Recipe(models.Model):
     """Recipe model."""
 
     author = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.CASCADE,
-        related_name='recipes',
+        related_name="recipes",
     )
 
     name = models.CharField(max_length=128)
     text = models.TextField()
-    image = models.ImageField(upload_to='recipes/')
+    image = models.ImageField(upload_to="recipes/")
     cooking_time = models.PositiveIntegerField()
 
     tags = models.ManyToManyField(
         Tag,
-        related_name='recipes',
+        related_name="recipes",
     )
 
     ingredients = models.ManyToManyField(
         Ingredient,
-        through='RecipeIngredient',
-        related_name='recipes',
+        through="RecipeIngredient",
+        related_name="recipes",
     )
 
     def __str__(self):
@@ -62,12 +62,12 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipe_ingredients',
+        related_name="recipe_ingredients",
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient_recipes',
+        related_name="ingredient_recipes",
     )
     amount = models.PositiveIntegerField()
 
@@ -76,32 +76,32 @@ class RecipeIngredient(models.Model):
 
         constraints = [
             models.UniqueConstraint(
-                fields=['recipe', 'ingredient'],
-                name='unique_recipe_ingredient',
+                fields=["recipe", "ingredient"],
+                name="unique_recipe_ingredient",
             ),
             models.CheckConstraint(
                 condition=Q(amount__gt=0),
-                name='amount_gt_zero',
+                name="amount_gt_zero",
             ),
         ]
 
     def __str__(self):
         """Return ingredient amount representation."""
-        return f'{self.ingredient} ({self.amount})'
+        return f"{self.ingredient} ({self.amount})"
 
 
 class Favorite(models.Model):
     """Favorite recipe model."""
 
     user = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.CASCADE,
-        related_name='favorites',
+        related_name="favorites",
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorited_by',
+        related_name="favorited_by",
     )
 
     class Meta:
@@ -109,28 +109,28 @@ class Favorite(models.Model):
 
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_favorite',
+                fields=["user", "recipe"],
+                name="unique_favorite",
             ),
         ]
 
     def __str__(self):
         """Return favorite representation."""
-        return f'{self.user} - {self.recipe}'
+        return f"{self.user} - {self.recipe}"
 
 
 class ShoppingCart(models.Model):
     """Shopping cart model."""
 
     user = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.CASCADE,
-        related_name='shopping_carts',
+        related_name="shopping_carts",
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='in_shopping_carts',
+        related_name="in_shopping_carts",
     )
 
     class Meta:
@@ -138,11 +138,11 @@ class ShoppingCart(models.Model):
 
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_shopping_cart',
+                fields=["user", "recipe"],
+                name="unique_shopping_cart",
             ),
         ]
 
     def __str__(self):
         """Return shopping cart representation."""
-        return f'{self.user} - {self.recipe}'
+        return f"{self.user} - {self.recipe}"

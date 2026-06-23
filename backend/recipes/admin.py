@@ -11,12 +11,10 @@ class IngredientAdmin(admin.ModelAdmin):
     """Admin configuration for ingredients."""
 
     list_display = (
-        'name',
-        'measurement_unit',
+        "name",
+        "measurement_unit",
     )
-    search_fields = (
-        'name',
-    )
+    search_fields = ("name",)
 
 
 @admin.register(Tag)
@@ -24,12 +22,12 @@ class TagAdmin(admin.ModelAdmin):
     """Admin configuration for tags."""
 
     list_display = (
-        'name',
-        'slug',
+        "name",
+        "slug",
     )
     search_fields = (
-        'name',
-        'slug',
+        "name",
+        "slug",
     )
 
 
@@ -38,17 +36,15 @@ class RecipeAdmin(admin.ModelAdmin):
     """Admin configuration for recipes."""
 
     list_display = (
-        'name',
-        'author',
-        'favorites_count',
+        "name",
+        "author",
+        "favorites_count",
     )
     search_fields = (
-        'name',
-        'author__username',
+        "name",
+        "author__username",
     )
-    list_filter = (
-        'tags',
-    )
+    list_filter = ("tags",)
 
     def favorites_count(self, obj):
         """Return number of favorites."""
@@ -60,13 +56,13 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
     """Admin configuration for recipe ingredients."""
 
     list_display = (
-        'recipe',
-        'ingredient',
-        'amount',
+        "recipe",
+        "ingredient",
+        "amount",
     )
     search_fields = (
-        'recipe__name',
-        'ingredient__name',
+        "recipe__name",
+        "ingredient__name",
     )
 
 
@@ -75,12 +71,12 @@ class FavoriteAdmin(admin.ModelAdmin):
     """Admin configuration for favorites."""
 
     list_display = (
-        'user',
-        'recipe',
+        "user",
+        "recipe",
     )
     search_fields = (
-        'user__username',
-        'recipe__name',
+        "user__username",
+        "recipe__name",
     )
 
 
@@ -89,10 +85,10 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     """Admin configuration for shopping cart."""
 
     list_display = (
-        'user',
-        'recipe',
+        "user",
+        "recipe",
     )
     search_fields = (
-        'user__username',
-        'recipe__name',
+        "user__username",
+        "recipe__name",
     )
