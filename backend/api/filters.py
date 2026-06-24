@@ -2,7 +2,6 @@
 
 import django_filters
 from django_filters import ModelMultipleChoiceFilter
-
 from recipes.models import Recipe, Tag
 
 
