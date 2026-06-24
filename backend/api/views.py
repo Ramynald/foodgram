@@ -4,13 +4,14 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from users.models import Subscription, User
+
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from users.models import User
 
 from .filters import RecipeFilter
 from .permissions import IsAuthorOrReadOnly
@@ -132,15 +133,17 @@ class UserViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if Subscription.objects.filter(
-            user=request.user, author=author
+        if request.user.subscriptions.filter(
+            author=author,
         ).exists():
             return Response(
                 {"errors": "Вы уже подписаны"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        Subscription.objects.create(user=request.user, author=author)
+        request.user.subscriptions.create(
+            author=author,
+        )
 
         serializer = UserWithRecipesSerializer(
             author, context={"request": request}
@@ -153,8 +156,8 @@ class UserViewSet(
         """Unsubscribe from an author."""
         author = get_object_or_404(User, pk=pk)
 
-        subscription = Subscription.objects.filter(
-            user=request.user, author=author
+        subscription = request.user.subscriptions.filter(
+            author=author,
         ).first()
 
         if subscription is None:
@@ -171,9 +174,7 @@ class UserViewSet(
     def subscriptions(self, request):
         """Return user subscriptions."""
         subscriptions = (
-            Subscription.objects.filter(
-                user=request.user,
-            ).select_related("author")
+            request.user.subscriptions.select_related("author")
         )
 
         authors = [sub.author for sub in subscriptions]
@@ -208,7 +209,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Add recipe to favorites."""
         recipe = get_object_or_404(Recipe, pk=pk)
 
-        if Favorite.objects.filter(user=request.user, recipe=recipe).exists():
+        if request.user.favorites.filter(
+            recipe=recipe
+        ).exists():
             return Response(
                 {"errors": "Рецепт уже в избранном"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -225,8 +228,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Remove recipe from favorites."""
         recipe = get_object_or_404(Recipe, pk=pk)
 
-        favorite = Favorite.objects.filter(
-            user=request.user, recipe=recipe
+        favorite = request.user.favorites.filter(
+            recipe=recipe
         ).first()
 
         if favorite is None:
@@ -244,8 +247,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Add recipe to shopping cart."""
         recipe = get_object_or_404(Recipe, pk=pk)
 
-        if ShoppingCart.objects.filter(
-            user=request.user, recipe=recipe
+        if request.user.shopping_carts.filter(
+            recipe=recipe,
         ).exists():
             return Response(
                 {"errors": "Рецепт уже в списке покупок"},
@@ -263,8 +266,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Remove recipe from shopping cart."""
         recipe = get_object_or_404(Recipe, pk=pk)
 
-        shopping_cart_item = ShoppingCart.objects.filter(
-            user=request.user, recipe=recipe
+        shopping_cart_item = request.user.shopping_carts.filter(
+            recipe=recipe,
         ).first()
 
         if shopping_cart_item is None:
@@ -283,9 +286,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def download_shopping_cart(self, request):
         """Download shopping cart as a text file."""
-        shopping_cart_items = ShoppingCart.objects.filter(
-            user=request.user
-        ).select_related("recipe")
+        shopping_cart_items = request.user.shopping_carts.select_related(
+            "recipe"
+        )
 
         if not shopping_cart_items.exists():
             return Response(

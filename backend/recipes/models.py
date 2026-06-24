@@ -1,14 +1,27 @@
 """Models for recipes application."""
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
+
+MAX_TAG_LENGTH = 32
+MAX_INGREDIENT_LENGTH = 64
+MAX_MEASUREMENT_UNIT_LENGTH = 16
+MAX_RECIPE_NAME_LENGTH = 128
+
+MIN_VALUE = 1
+MAX_VALUE = 32000
 
 
 class Tag(models.Model):
     """Recipe tag model."""
 
-    name = models.CharField(max_length=32, unique=True)
-    slug = models.SlugField(max_length=32, unique=True)
+    name = models.CharField(
+        max_length=MAX_TAG_LENGTH, unique=True
+    )
+    slug = models.SlugField(
+        max_length=MAX_TAG_LENGTH, unique=True
+    )
 
     def __str__(self):
         """Return tag name."""
@@ -18,8 +31,12 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Ingredient model."""
 
-    name = models.CharField(max_length=64, unique=True)
-    measurement_unit = models.CharField(max_length=16)
+    name = models.CharField(
+        max_length=MAX_INGREDIENT_LENGTH, unique=True
+    )
+    measurement_unit = models.CharField(
+        max_length=MAX_MEASUREMENT_UNIT_LENGTH
+    )
 
     def __str__(self):
         """Return ingredient name."""
@@ -35,10 +52,17 @@ class Recipe(models.Model):
         related_name="recipes",
     )
 
-    name = models.CharField(max_length=128)
+    name = models.CharField(
+        max_length=MAX_RECIPE_NAME_LENGTH
+    )
     text = models.TextField()
     image = models.ImageField(upload_to="recipes/")
-    cooking_time = models.PositiveIntegerField()
+    cooking_time = models.PositiveIntegerField(
+        validators=[
+            MinValueValidator(MIN_VALUE),
+            MaxValueValidator(MAX_VALUE),
+        ]
+    )
 
     tags = models.ManyToManyField(
         Tag,
@@ -69,7 +93,12 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE,
         related_name="ingredient_recipes",
     )
-    amount = models.PositiveIntegerField()
+    amount = models.PositiveIntegerField(
+        validators=[
+            MinValueValidator(MIN_VALUE),
+            MaxValueValidator(MAX_VALUE),
+        ]
+    )
 
     class Meta:
         """Model configuration."""

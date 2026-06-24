@@ -1,9 +1,14 @@
 """Serializers for the API."""
 
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from rest_framework import serializers
+
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import User
+
+MAX_NAME_LENGTH = 150
+MIN_VALUE = 1
+MAX_VALUE = 32000
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -131,8 +136,14 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(write_only=True)
 
-    first_name = serializers.CharField(max_length=150, required=True)
-    last_name = serializers.CharField(max_length=150, required=True)
+    first_name = serializers.CharField(
+        max_length=MAX_NAME_LENGTH,
+        required=True,
+    )
+    last_name = serializers.CharField(
+        max_length=MAX_NAME_LENGTH,
+        required=True,
+    )
 
     class Meta:
         """Serializer configuration."""
@@ -256,7 +267,10 @@ class RecipeIngredientCreateSerializer(serializers.ModelSerializer):
         source="ingredient",
     )
 
-    amount = serializers.IntegerField(min_value=1)
+    amount = serializers.IntegerField(
+        min_value=MIN_VALUE,
+        max_value=MAX_VALUE,
+    )
 
     class Meta:
         """Serializer configuration."""
@@ -277,7 +291,10 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         many=True,
     )
     image = Base64ImageField(required=True)
-    cooking_time = serializers.IntegerField(min_value=1)
+    cooking_time = serializers.IntegerField(
+        min_value=MIN_VALUE,
+        max_value=MAX_VALUE,
+    )
 
     class Meta:
         """Serializer configuration."""
@@ -330,12 +347,18 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
     def create_ingredients(self, recipe, ingredients_data):
         """Create recipe ingredients."""
+        recipe_ingredients = []
+
         for ingredient_data in ingredients_data:
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient_data["ingredient"],
-                amount=ingredient_data["amount"],
+            recipe_ingredients.append(
+                RecipeIngredient(
+                    recipe=recipe,
+                    ingredient=ingredient_data["ingredient"],
+                    amount=ingredient_data["amount"],
+                )
             )
+
+        RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
     def create(self, validated_data):
         """Create recipe."""
@@ -379,7 +402,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
         instance.tags.set(tags_data)
 
-        RecipeIngredient.objects.filter(recipe=instance).delete()
+        instance.recipe_ingredients.all().delete()
         self.create_ingredients(instance, ingredients_data)
 
         return super().update(instance, validated_data)

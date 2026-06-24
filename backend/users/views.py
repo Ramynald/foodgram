@@ -1,1 +1,0 @@
-"""Views for users application."""
